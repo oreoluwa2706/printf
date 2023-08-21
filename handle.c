@@ -49,11 +49,4 @@ int _printf(const char *format, ...)
 	return count;
 }
 
-int main(void)
-{
-	int num = 42;
-	_printf("This is a number: %d\n", num);
-	return 0;
-}
-
 
