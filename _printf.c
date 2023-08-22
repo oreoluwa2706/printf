@@ -1,61 +1,65 @@
 #include "main.h"
 
+void check_buffer(char buffer[], int *buff_ind);
+
 /**
  * _printf - check for this function
- * @format: check for this parameter
- * Return: int
+ * @format: check for this parameter.
+ * Return: int.
  */
 int _printf(const char *format, ...)
 {
-	va_list printf_char;
-	int count_char;
-	int s_len;
+	int a, output, output_char, buffer_index;
+	int flags, precision, width, size;
+	va_list list;
+	char buffer[BUFF_SIZE];
 
-	count_char = 0;
+	output = 0,
+	output_char = 0;
+	buffer_index = 0;
 	if (format == NULL)
-	{
 		return (-1);
-	}
-	va_start(printf_char, format);
-	while (*format)
+
+	va_start(list, format);
+
+	for (a = 0; format && format[a] != '\0'; a++)
 	{
-		if (*format != '%')
+		if (format[a] != '%')
 		{
-			write(1, format, 1);
-			count_char++;
+			buffer[buffer_index++] = format[a];
+			if (buffer_index == BUFF_SIZE)
+				check_buffer(buffer, &buffer_index);
+			output_char++;
 		}
 		else
 		{
-			format++;
-			if (*format == '\0')
-			{
-				break;
-			}
-		}
-		if (*format == '%')
-		{
-			write(1, format, 1);
-			count_char++;
-		}
-		else if (*format == 'c')
-		{
-			char c = va_arg(printf_char, int);
-
-			write(1, &c, 1);
-			count_char++;
-		}
-		else if (*format == 's')
-		{
-			char *s_count = va_arg(printf_char, char*);
-
-			s_len = 0;
-			if (s_count[s_len] != '\0')
-				s_len++;
-			write(1, s_count, s_len);
-			count_char += s_len;
+			check_buffer(buffer, &buffer_index);
+			flags = get_flags(format, &a);
+			width = get_width(format, &a, list);
+			precision = get_precision(format, &a, list);
+			size = get_size(format, &a);
+			++a;
+			output = handle_print(format, &a, list, buffer,
+				flags, width, precision, size);
+			if (output == -1)
+				return (-1);
+			output_char += output;
 		}
 	}
-	format++;
-	va_end(printf_char);
-	return (count_char);
+	check_buffer(buffer, &buffer_index);
+	va_end(list);
+	return (output_char);
 }
+
+/**
+ * check_buffer - check for this function to print buffer
+ * @buffer: Array of chars
+ * @buffer_index: Index at which to add next char, represents the length.
+ */
+void check_buffer(char buffer[], int *buffer_index)
+{
+	if (*buffer_index > 0)
+		write(1, &buffer[0], *buffer_index);
+	*buffer_index = 0;
+}
+
